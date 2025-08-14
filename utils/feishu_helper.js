@@ -74,10 +74,7 @@ async function findTodayDutyMemberInBitable(appToken, tableId) {
         const todayTimestamp = today.setHours(0, 0, 0, 0);
 
         const response = await client.bitable.appTableRecord.list({
-            path: { app_token: appToken, table_id: tableId },
-            params: {
-                filter: `CurrentValue.[日期] = ${todayTimestamp}`,
-            },
+            path: { app_token: appToken, table_id: tableId }
         });
 
         if (response.code !== 0) {
@@ -85,11 +82,10 @@ async function findTodayDutyMemberInBitable(appToken, tableId) {
         }
 
         if (response.data.items && response.data.items.length > 0) {
-            const record = response.data.items[0];
+            const record = response.data.items.find(item => item.fields['日期'] === todayTimestamp);
             // 从“人员”字段中提取姓名和ID
-            const dutyPerson = record.fields['负责人'][0];
-            const name = dutyPerson.name;
-            const id = dutyPerson.id;
+            const name = record.fields['负责人'];
+            const id = record.fields['负责人ID'];
 
             console.log(`找到今天的值日同学: ${name}`);
             return { name, id };

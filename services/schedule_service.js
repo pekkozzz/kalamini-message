@@ -21,11 +21,11 @@ function generateMonthlyRoster(members) {
         
         // 生成 Unix 时间戳 (毫秒)
         const date = new Date(year, month, day).getTime();
-        
         rosterRecords.push({
             '日期': date,
             // "人员"字段需要传入一个包含 id 的对象数组
-            '负责人': [{ id: member.member_id }],
+            '负责人': member.name,
+            '负责人ID': member.member_id
         });
     }
 

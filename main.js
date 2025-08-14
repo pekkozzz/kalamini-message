@@ -58,5 +58,5 @@ schedule.scheduleJob('0 9 * * *', () => {
 console.log('飞书值日机器人已启动 (多维表格版)，等待定时任务触发...');
 
 // 为了方便测试，我们可以在启动时立即执行一次
-updateMonthlyDutyRoster();
+// updateMonthlyDutyRoster();
 // sendDailyDutyNotification();
