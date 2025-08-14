@@ -126,9 +126,46 @@ async function sendDutyMessage(chatId, member) {
     }
 }
 
+/**
+ * 发送每周任务分配消息
+ * @param {string} chatId 群组ID
+ * @param {Array<{task: string, members: Array<{name: string, id: string}>}>} assignments 任务分配结果
+ */
+async function sendWeeklyTaskMessage(chatId, assignments) {
+    try {
+        let messageText = '本周五自清洁任务分配如下：\n\n';
+
+        assignments.forEach(assignment => {
+            const membersText = assignment.members
+                .map(member => `<at user_id="${member.id}">${member.name}</at>`)
+                .join('、');
+            messageText += `🧹 ${assignment.task}: ${membersText}\n`;
+        });
+
+        messageText += '\n感谢加油喵🐱';
+
+        const response = await client.im.message.create({
+            params: { receive_id_type: 'chat_id' },
+            data: {
+                receive_id: chatId,
+                content: JSON.stringify({ text: messageText }),
+                msg_type: 'text',
+            },
+        });
+
+        if (response.code !== 0) {
+            throw new Error(`发送每周任务消息失败: ${response.msg}`);
+        }
+        console.log('成功发送每周任务分配消息。');
+    } catch (error) {
+        console.error('发送每周任务提醒时出错:', error);
+    }
+}
+
 module.exports = {
     getChatMembers,
     updateBitableRecords,
     findTodayDutyMemberInBitable,
     sendDutyMessage,
+    sendWeeklyTaskMessage,
 };

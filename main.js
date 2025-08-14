@@ -1,7 +1,7 @@
 require('dotenv').config();
 const schedule = require('node-schedule');
-const { getChatMembers, updateBitableRecords, findTodayDutyMemberInBitable, sendDutyMessage } = require('./utils/feishu_helper');
-const { generateMonthlyRoster } = require('./services/schedule_service');
+const { getChatMembers, updateBitableRecords, findTodayDutyMemberInBitable, sendDutyMessage, sendWeeklyTaskMessage } = require('./utils/feishu_helper');
+const { generateMonthlyRoster, assignWeeklyTasks } = require('./services/schedule_service');
 
 const { APP_ID, APP_SECRET, CHAT_ID, BITABLE_APP_TOKEN, BITABLE_TABLE_ID } = process.env;
 
@@ -43,6 +43,23 @@ async function sendDailyDutyNotification() {
     }
 }
 
+/**
+ * 每周五10点执行，分配并通知每周的清洁任务
+ */
+async function assignAndNotifyWeeklyTasks() {
+    console.log('开始执行每周清洁任务分配和通知...');
+    const members = await getChatMembers(CHAT_ID);
+    if (members.length > 0) {
+        const assignments = assignWeeklyTasks(members);
+        if (assignments) {
+            await sendWeeklyTaskMessage(CHAT_ID, assignments);
+            console.log('每周清洁任务分配和通知完成。');
+        }
+    } else {
+        console.log('无法获取群成员，跳过此次每周任务分配。');
+    }
+}
+
 // --- 定时任务调度 ---
 
 // 每月1号凌晨1点执行
@@ -55,8 +72,14 @@ schedule.scheduleJob('0 9 * * *', () => {
     sendDailyDutyNotification();
 });
 
+// 每周五上午12点执行 (5代表周五)
+schedule.scheduleJob('0 12 * * 5', () => {
+    assignAndNotifyWeeklyTasks();
+});
+
 console.log('飞书值日机器人已启动 (多维表格版)，等待定时任务触发...');
 
 // 为了方便测试，我们可以在启动时立即执行一次
 // updateMonthlyDutyRoster();
 // sendDailyDutyNotification();
+// assignAndNotifyWeeklyTasks();
